@@ -1,0 +1,9 @@
+TV::Letmewatchthis
+
+# Installation
+
+    apt-get install libmodule-install-perl
+
+# Usage
+
+    ./bin/letmewatchthis -h

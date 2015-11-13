@@ -1,0 +1,125 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+use Getopt::Long qw//;
+use lib 'lib';
+use TV::Letmewatchthis;
+
+our $VERSION = "0.1";
+
+my $options = { verbose => 0 };
+Getopt::Long::Configure('no_ignore_case');
+Getopt::Long::Configure('bundling');
+Getopt::Long::GetOptions (
+   "h|help"             => \$options->{'help'},
+   "v|verbose"          => sub { $options->{'verbose'}++ },
+   "V|version"          => \$options->{'version'},
+   "S|show"             => \$options->{'shows'},
+   "d|download"         => \$options->{'download'},
+   "t|title=s"          => \$options->{'title'},
+   "s|season=i"         => \$options->{'season'},
+   "e|episode=i"        => \$options->{'episode'},
+   "<>"                 => sub {   if(!$options->{'title'})   { $options->{'title'}  = "".shift }
+                                elsif(!$options->{'season'})  { $options->{'season'}  = "".shift }
+                                elsif(!$options->{'episode'}) { $options->{'episode'} = "".shift }
+                           },
+) or _usage();
+if($options->{'help'}) {
+    require Pod::Usage;
+    Pod::Usage::pod2usage( { -verbose => 2, -exit => 3 } );
+}
+if($options->{'version'}) {
+    print "letmewatchthis Version $VERSION\n"; exit 0;
+}
+
+my $lmwt = TV::Letmewatchthis->new(verbose => $options->{'verbose'});
+if($options->{'shows'}) {
+    my $shows = $lmwt->get_tv_shows();
+    for my $show (@{$shows}) {
+        printf("[%d] %s\n", $show->{'year'}, $show->{'title'});
+    }
+}
+elsif($options->{'title'}) {
+    if($options->{'download'}) {
+        if($options->{'episode'}) {
+            $lmwt->download_tv_episode($options->{'title'}, $options->{'season'}, $options->{'episode'});
+        }
+        elsif($options->{'season'}) {
+            $lmwt->download_tv_season($options->{'title'}, $options->{'season'});
+        } else {
+            $lmwt->download_tv_episodes($options->{'title'});
+        }
+    }
+    else {
+        my $episodes = $lmwt->get_tv_episodes($options->{'title'});
+        printf("%s\n", $options->{'title'});
+        for my $season ( sort {$a<=>$b} keys %{$episodes}) {
+            next if $options->{'season'} && $options->{'season'} != $season;
+            printf("Season %02d\n", $season);
+            for my $nr ( sort {$a<=>$b} keys %{$episodes->{$season}}) {
+                next if $options->{'episode'} && $options->{'episode'} != $nr;
+                printf("  S%02dE%02d - %s\n", $season, $nr, $episodes->{$season}->{$nr}->{'title'});
+            }
+        }
+    }
+} else {
+    _usage();
+}
+exit;
+
+##############################################
+sub _usage {
+    my($msg) = @_;
+    print $msg."\n" if $msg;
+    print "usage: letmewatchthis [<options>]\nsee --help for detailed help.\n";
+    exit 3;
+}
+
+1;
+__END__
+##############################################
+
+=head1 NAME
+
+letmewatchthis - Fetch stream files
+
+=head1 SYNOPSIS
+
+  Usage: letmewatchthis [options]
+
+  Options:
+  -h, --help                    Show this help message and exit
+  -v, --verbose                 Print verbose output
+  -V, --version                 Print version
+
+  -S, --shows                   List tv-shows
+  -d, --download                Download mode
+
+  -t, --title <tvshow>          Select this tvshow
+  -s, --season <season>         Download given season, use 'latest' to fetch last season
+  -e, --episode <episode>       Download given episode only, must set season to use
+
+=head1 EXAMPLE
+
+list tv shows
+
+    ./letmewatchthis -S
+
+list episodes:
+
+    ./letmewatchthis 'Suits'
+
+download complete last season:
+
+    ./letmewatchthis -d 'Suits' latest
+
+download latest episode from latest season:
+
+    ./letmewatchthis -d 'Suits' latest latest
+
+download very first episode:
+
+    ./letmewatchthis -d 'Suits' 1 1
+
+=cut
