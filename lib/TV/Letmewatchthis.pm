@@ -83,7 +83,7 @@ sub get_tv_shows {
     my($self, $title) = @_;
 
     if($title) {
-        #return $self->{'_cache'}->{'tv_shows_'.$title} if $self->{'_cache'}->{'tv_shows_'.$title};
+        return $self->{'_cache'}->{'tv_shows_'.$title} if $self->{'_cache'}->{'tv_shows_'.$title};
         my $page = $self->_get_url(URL_TV_SEARCH_SHOWS.$title);
         $self->{'_cache'}->{'tv_shows_'.$title} = $self->_parse_tv_search($page);
         return $self->{'_cache'}->{'tv_shows_'.$title};
