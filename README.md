@@ -15,9 +15,10 @@
          -d, --download                Download mode
 
          -t, --title <tvshow>          Select this tvshow
-         -s, --season <season>         Download given season, use 'latest' to fetch last season
-         -e, --episode <episode>       Download given episode only, must set season to use
-
+         -s, --season <season>         Download given season, use 'latest' to
+                                       fetch last season
+         -e, --episode <episode>       Download given episode only, must set
+                                       season to use
 
 # EXAMPLES
 
