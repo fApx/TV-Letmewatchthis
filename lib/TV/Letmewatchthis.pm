@@ -263,7 +263,7 @@ sub _get_url_post {
 ################################################################################
 sub _get_tv_show {
     my($self, $title) = @_;
-    my $shows = $self->get_tv_shows();
+    my $shows = $self->get_tv_shows($title);
     for my $show (@{$shows}) {
         if($show->{'title'} eq $title) {
             return $show;
