@@ -34,7 +34,7 @@ if($options->{'version'}) {
     print "letmewatchthis Version $VERSION\n"; exit 0;
 }
 
-if(!$ENV{'HTTP_PROXY'} && and !$options->{'insecure'}) {
+if(!$ENV{'HTTP_PROXY'} && !$options->{'insecure'}) {
     print STDERR "no HTTP_PROXY set, it is recommended to use a socks proxy!";
     print STDERR "override with --insecure";
     exit 1;
