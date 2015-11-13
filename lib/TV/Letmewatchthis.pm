@@ -31,11 +31,10 @@ use constant {
     YOUTUBEDL     => './youtube-dl',
 };
 use constant URL_TV_SEARCH_VIEWS => BASE_URL.'/?search_section=2&sort=views';
+use constant URL_TV_SEARCH_SHOWS => BASE_URL.'/index.php?search_section=2&search_keywords=';
 
 my $verbose = 0;
 my $youtube_dl_updated = 0;
-use Exporter qw/import/;
-our @EXPORT_OK = qw/BASE_URL URL_TV_SEARCH_VIEWS/;
 
 ################################################################################
 
@@ -75,15 +74,22 @@ sub DESTROY {
 
 =head2 get_tv_shows
 
-    get_tv_shows()
+    get_tv_shows([$title])
 
 returns list of tv shows
 
 =cut
 sub get_tv_shows {
-    my($self) = @_;
-    return $self->{'_cache'}->{'tv_shows'} if $self->{'_cache'}->{'tv_shows'};
+    my($self, $title) = @_;
 
+    if($title) {
+        #return $self->{'_cache'}->{'tv_shows_'.$title} if $self->{'_cache'}->{'tv_shows_'.$title};
+        my $page = $self->_get_url(URL_TV_SEARCH_SHOWS.$title);
+        $self->{'_cache'}->{'tv_shows_'.$title} = $self->_parse_tv_search($page);
+        return $self->{'_cache'}->{'tv_shows_'.$title};
+    }
+
+    return $self->{'_cache'}->{'tv_shows'} if $self->{'_cache'}->{'tv_shows'};
     my $page = $self->_get_url(URL_TV_SEARCH_VIEWS);
     $self->{'_cache'}->{'tv_shows'} = $self->_parse_tv_search($page);
     return $self->{'_cache'}->{'tv_shows'};

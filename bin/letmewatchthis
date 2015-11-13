@@ -15,6 +15,7 @@ Getopt::Long::GetOptions (
    "h|help"             => \$options->{'help'},
    "v|verbose"          => sub { $options->{'verbose'}++ },
    "V|version"          => \$options->{'version'},
+   "insecure"           => \$options->{'insecure'},
    "S|show"             => \$options->{'shows'},
    "d|download"         => \$options->{'download'},
    "t|title=s"          => \$options->{'title'},
@@ -33,9 +34,15 @@ if($options->{'version'}) {
     print "letmewatchthis Version $VERSION\n"; exit 0;
 }
 
+if(!$ENV{'HTTP_PROXY'} && and !$options->{'insecure'}) {
+    print STDERR "no HTTP_PROXY set, it is recommended to use a socks proxy!";
+    print STDERR "override with --insecure";
+    exit 1;
+}
+
 my $lmwt = TV::Letmewatchthis->new(verbose => $options->{'verbose'});
 if($options->{'shows'}) {
-    my $shows = $lmwt->get_tv_shows();
+    my $shows = $lmwt->get_tv_shows($options->{'title'});
     for my $show (@{$shows}) {
         printf("[%d] %s\n", $show->{'year'}, $show->{'title'});
     }
@@ -102,9 +109,13 @@ letmewatchthis - Fetch stream files
 
 =head1 EXAMPLE
 
-list tv shows
+list top tv shows
 
     ./letmewatchthis -S
+
+search tv shows
+
+    ./letmewatchthis -S <searchstring>
 
 list episodes:
 
