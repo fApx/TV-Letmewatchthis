@@ -285,6 +285,11 @@ sub _init_cache {
     my($self) = @_;
     my $cache = {};
     if(-e CACHE_FILE) {
+        my @stat = stat(CACHE_FILE);
+        if($stat[9] < time() - 1200) {
+            unlink(CACHE_FILE);
+            return;
+        }
         my $content = _read_file(CACHE_FILE);
         our $VAR1;
         ## no critic
