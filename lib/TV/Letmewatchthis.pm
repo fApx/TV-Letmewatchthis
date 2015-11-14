@@ -17,7 +17,6 @@ use HTTP::Cookies;
 use HTTP::Request;
 use File::Temp qw/tempfile/;
 use Data::Dumper;
-use File::Slurp qw/read_file/;
 use File::Path qw/make_path/;
 use POSIX qw/strftime/;
 use File::Glob ':glob';
@@ -243,7 +242,7 @@ sub _get_url {
     # shortcut to get urls from local files
     if(-e $url) {
         print STDERR 'reading '.$url." locally\n";
-        return read_file($url);
+        return _read_file($url);
     }
     $method = 'GET' unless defined $method;
     my $request  = new HTTP::Request( $method, $url );
@@ -286,7 +285,7 @@ sub _init_cache {
     my($self) = @_;
     my $cache = {};
     if(-e CACHE_FILE) {
-        my $content = read_file(CACHE_FILE);
+        my $content = _read_file(CACHE_FILE);
         our $VAR1;
         ## no critic
         eval $content;
@@ -452,6 +451,18 @@ sub _get_latest_episode {
 }
 
 ################################################################################
+
+sub _read_file {
+    my($file) = @_;
+    local $/ = undef;
+    open(my $fh, '<', $file) or die("cannot read $file: $!");
+    binmode $fh;
+    my $content = <$fh>;
+    return($content);
+}
+
+################################################################################
+
 
 1;
 
