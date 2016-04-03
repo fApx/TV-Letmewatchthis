@@ -395,7 +395,11 @@ sub _download_episode {
         system(YOUTUBEDL, '-U');
         $youtube_dl_updated = 1;
     }
-    print system(YOUTUBEDL, $download_url, '-o', $filename.".%(ext)s");
+    my @extra_options = ();
+    if(!_is_interactive()) {
+        push @extra_options, "--no-progress";
+    }
+    print system(YOUTUBEDL, $download_url, '-o', $filename.".%(ext)s", @extra_options);
     my $rc = $?;
     if($rc != 0 && $rc != 256) {
         _out("youtube-dl exited non-zero");
@@ -467,7 +471,11 @@ sub _read_file {
 }
 
 ################################################################################
+sub _is_interactive {
+  return(-t STDIN && -t STDOUT);
+}
 
+################################################################################
 
 1;
 
