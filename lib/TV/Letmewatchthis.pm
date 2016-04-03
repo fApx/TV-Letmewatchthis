@@ -20,6 +20,7 @@ use Data::Dumper;
 use File::Path qw/make_path/;
 use POSIX qw/strftime/;
 use File::Glob ':glob';
+use Carp qw/confess/;
 
 our $VERSION = '0.01';
 
@@ -190,14 +191,26 @@ sub download_tv_episode {
     my $urls = $self->_get_tv_episode_urls($title, $season, $nr);
     for my $url (sort { $b->{'views'} <=> $a->{'views'} } @{$urls}) {
         next if $url->{'name'} =~ m/(Sponsor|Promo)\ Host/mx;
-        $file = $self->_download_episode($url->{'url'}, $url->{'name'}, $filename);
+        eval {
+            $file = $self->_download_episode($url->{'url'}, $url->{'name'}, $filename);
+        };
+        if($@) {
+            _out(sprintf("download failed"));
+        }
         my @files = bsd_glob($filename.'.*');
         @files = grep(!/\.part$/, @files);
         if(scalar @files > 0) {
-            _out(sprintf("successfully downloaded %s", $files[0]));
-            return($files[0]);
+            my $size = -s $files[0];
+            if($size > (1024*1024)) {
+                _out(sprintf("successfully downloaded %s", $files[0]));
+                return($files[0]);
+            } else {
+                _out(sprintf("downloaded file too small %s -> %.2fkB", $files[0], $size/1024));
+                unlink($files[0]);
+            }
         }
     }
+    die(sprintf("no more urls to try for %s - %02i%02i", $title, $season, $nr));
     return();
 }
 
@@ -250,7 +263,7 @@ sub _get_url {
     if($response->is_success()) {
         return($response->as_string());
     }
-    die('request '.$url.' failed: '.Dumper($response));
+    confess('request '.$url.' failed: '.Dumper($response));
 }
 
 ################################################################################
